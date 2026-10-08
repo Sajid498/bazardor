@@ -13,7 +13,7 @@ export default function Loading() {
         <div className="h-10 w-48 rounded-lg bg-slate-200" />
       </div>
 
-      {/* Product Card Skeletons */}
+      {/* Product Skeletons */}
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {Array.from({ length: 6 }).map(
           (_, index) => (
@@ -27,19 +27,11 @@ export default function Loading() {
 
               <div className="mt-3 h-4 w-20 rounded bg-slate-200" />
 
-              <div className="mt-8 border-t border-slate-100 pt-4">
-                <div className="h-4 w-24 rounded bg-slate-200" />
-
-                <div className="mt-3 h-6 w-32 rounded bg-slate-200" />
-              </div>
+              <div className="mt-8 h-6 w-32 rounded bg-slate-200" />
             </div>
           )
         )}
       </div>
-
-      <span className="sr-only">
-        ক্যাটাগরির পণ্য লোড হচ্ছে...
-      </span>
     </div>
   );
 }
