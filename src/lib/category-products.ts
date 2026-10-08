@@ -26,6 +26,7 @@ const aliases: Record<string, string[]> = {
 
   shobji: [
     "shobji",
+    "sobji",
     "vegetable",
     "vegetables",
     "সবজি",
@@ -46,6 +47,7 @@ const aliases: Record<string, string[]> = {
 
   "dim-dudh": [
     "dim-dudh",
+    "dim-dui",
     "egg-milk",
     "egg",
     "eggs",
@@ -75,8 +77,6 @@ export async function getCategoryProducts(
     return [];
   }
 
-  // Reuse the same product dataset used by Home.
-  // This avoids unnecessary extra API requests.
   const allProducts = await getProducts();
 
   const allowed = new Set(
