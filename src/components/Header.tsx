@@ -47,9 +47,18 @@ function PriceTicker() {
 
         const data = await response.json();
 
-        if (Array.isArray(data.products)) {
-          setProducts(data.products.slice(0, 12));
-        }
+        
+if (Array.isArray(data.products)) {
+  const changedProducts = (data.products as Product[])
+    .filter(
+      (product) =>
+        typeof product.changePercent === "number" &&
+        product.changePercent !== 0
+    );
+
+  setProducts(changedProducts);
+}
+
       } catch (error) {
         if (!controller.signal.aborted) {
           console.error("Ticker Error:", error);
