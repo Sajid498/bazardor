@@ -115,7 +115,7 @@ export default function SignInPage() {
   return (
     <section className="flex min-h-[75vh] items-center justify-center px-4 py-12">
       <div className="w-full max-w-md rounded-2xl border border-emerald-100 bg-white p-6 shadow-lg sm:p-9">
-        {/* Header */}
+ 
         <div className="text-center">
           <div className="mb-4 text-5xl">🛒</div>
 
@@ -128,7 +128,7 @@ export default function SignInPage() {
           </p>
         </div>
 
-        {/* Email Login */}
+  
         <form
           onSubmit={handleSubmit}
           className="mt-8 space-y-5"
@@ -186,10 +186,10 @@ export default function SignInPage() {
           </button>
         </form>
 
-        {/* Social Login */}
+
         <SocialLoginButtons />
 
-        {/* Signup Link */}
+    
         <p className="mt-6 text-center text-sm text-slate-600">
           Don't have an account?{" "}
           <Link

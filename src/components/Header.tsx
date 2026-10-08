@@ -171,7 +171,7 @@ export default function Header() {
 
   return (
     <header className="border-b border-emerald-100 bg-[#fafcfa]">
-      {/* Main Navbar */}
+    
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
         <Link
           href="/"
@@ -198,11 +198,11 @@ export default function Header() {
           </span>
         </Link>
 
-        {/* Authentication Navigation */}
+      
         <AuthNav />
       </div>
 
-      {/* Category Navigation */}
+  
       <nav
         aria-label="পণ্য ক্যাটাগরি"
         className="border-t border-emerald-100"
@@ -235,7 +235,7 @@ export default function Header() {
         </div>
       </nav>
 
-      {/* Real API Price Ticker */}
+
       <PriceTicker />
     </header>
   );

@@ -48,14 +48,14 @@ export default function ProductCard({
       href={`/product/${encodeURIComponent(product.id)}`}
       className="group flex h-full flex-col overflow-hidden rounded-2xl border border-emerald-100 bg-white p-5 shadow-sm transition duration-300 hover:-translate-y-1 hover:border-emerald-300 hover:shadow-lg"
     >
-      {/* Product Emoji */}
+     
       <div className="mb-4 flex h-20 items-center justify-center rounded-xl bg-[#f2f8f2] text-5xl">
         <span role="img" aria-label={product.name}>
           {product.emoji}
         </span>
       </div>
 
-      {/* Product Name */}
+    
       <div className="flex-1">
         <h3 className="text-lg font-extrabold text-slate-800 group-hover:text-emerald-800">
           {product.name}
@@ -68,7 +68,7 @@ export default function ProductCard({
 
       <div className="my-4 border-t border-slate-100" />
 
-      {/* Today Price */}
+
       <p className="text-xs font-semibold text-slate-500">
         আজকের দাম
       </p>
@@ -85,7 +85,7 @@ export default function ProductCard({
         </span>
       </div>
 
-      {/* Details Link Text */}
+   
       <div className="mt-4 text-sm font-bold text-emerald-700">
         বিস্তারিত দেখুন →
       </div>

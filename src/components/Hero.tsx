@@ -6,7 +6,7 @@ export default function Hero() {
     <section className="overflow-hidden rounded-2xl border border-emerald-100 bg-[#fafcfa] px-5 py-8 shadow-sm sm:px-8 sm:py-10 lg:px-10">
       <div className="grid items-center gap-8 md:grid-cols-[1.4fr_1fr]">
 
-        {/* Left Side Content */}
+    
         <div>
           <p className="mb-3 inline-flex rounded-full bg-emerald-100 px-4 py-1.5 text-sm font-semibold text-emerald-800">
             🛒 নিত্যপণ্যের বাজারদর
@@ -22,7 +22,7 @@ export default function Hero() {
             গড়, সর্বনিম্ন ও সর্বোচ্চ দাম জানুন সহজে।
           </p>
 
-          {/* CTA Button */}
+    
           <a
             href="#সব-পণ্য"
             className="mt-7 inline-flex items-center gap-2 rounded-xl bg-emerald-700 px-6 py-3 font-bold text-white shadow-sm transition hover:bg-emerald-800"
@@ -32,7 +32,7 @@ export default function Hero() {
           </a>
         </div>
 
-        {/* Right Side Image */}
+       
         <div className="flex justify-center md:justify-end">
           <Image
             src="/bazar-hero.png"

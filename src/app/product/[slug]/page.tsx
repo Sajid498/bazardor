@@ -309,7 +309,7 @@ export default async function ProductDetailsPage({
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
-      {/* Breadcrumb */}
+  
       <nav
         aria-label="Breadcrumb"
         className="mb-6 text-sm text-slate-500"
@@ -337,7 +337,7 @@ export default async function ProductDetailsPage({
         </span>
       </nav>
 
-      {/* Product Summary */}
+  
       <section className="rounded-2xl border border-emerald-100 bg-white p-6 shadow-sm sm:p-9">
         <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
           <div className="flex h-28 w-28 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-7xl">
@@ -395,7 +395,7 @@ export default async function ProductDetailsPage({
 
       <MarketPriceTable product={product} />
 
-      {/* Footer Navigation */}
+   
       <div className="mt-10">
         <Link
           href="/"

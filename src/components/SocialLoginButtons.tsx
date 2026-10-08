@@ -7,7 +7,24 @@ import toast from "react-hot-toast";
 import { authClient } from "@/lib/auth-client";
 
 type Provider = "google" | "github";
+function getCallbackURL(): string {
+  const params = new URLSearchParams(
+    window.location.search
+  );
 
+  const callbackURL = params.get("callbackUrl");
+
+  if (
+    callbackURL &&
+    callbackURL.startsWith("/") &&
+    !callbackURL.startsWith("//") &&
+    !callbackURL.startsWith("/\\")
+  ) {
+    return callbackURL;
+  }
+
+  return "/";
+}
 export default function SocialLoginButtons() {
   const [loading, setLoading] = useState<Provider | null>(null);
 
@@ -35,7 +52,7 @@ export default function SocialLoginButtons() {
 
   return (
     <div className="mt-6 space-y-3">
-      {/* Divider */}
+
       <div className="flex items-center gap-3">
         <div className="h-px flex-1 bg-gray-200"></div>
 
@@ -46,7 +63,7 @@ export default function SocialLoginButtons() {
         <div className="h-px flex-1 bg-gray-200"></div>
       </div>
 
-      {/* Google Login */}
+    
       <button
         type="button"
         onClick={() => handleSocialLogin("google")}
@@ -62,7 +79,7 @@ export default function SocialLoginButtons() {
           : "Continue with Google"}
       </button>
 
-      {/* GitHub Login */}
+      
       <button
         type="button"
         onClick={() => handleSocialLogin("github")}

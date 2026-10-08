@@ -1,79 +1,139 @@
 
-import { headers } from "next/headers";
-import { redirect } from "next/navigation";
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { toast } from "react-hot-toast";
 
-import { auth } from "@/lib/auth";
+import { authClient } from "@/lib/auth-client";
 
-export default async function MyProfilePage() {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
+export default function UpdateProfilePage() {
+  const router = useRouter();
+  const { data: session, isPending } =
+    authClient.useSession();
 
-  if (!session?.user) {
-    redirect("/signin");
+  const [name, setName] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  async function handleUpdate(
+    event: React.FormEvent<HTMLFormElement>
+  ) {
+    event.preventDefault();
+
+    const updatedName = name.trim();
+
+    if (!updatedName) {
+      toast.error("Please enter your name.");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const { error } = await authClient.updateUser({
+        name: updatedName,
+      });
+
+      if (error) {
+        toast.error(
+          error.message || "Failed to update information."
+        );
+        return;
+      }
+
+      toast.success("Information updated successfully!");
+
+      router.push("/my-profile");
+      router.refresh();
+    } catch (error) {
+      console.error("Profile update error:", error);
+      toast.error("Something went wrong. Try again.");
+    } finally {
+      setLoading(false);
+    }
   }
 
-  const user = session.user;
+  if (isPending) {
+    return (
+      <div className="mx-auto max-w-xl px-4 py-16 text-center text-slate-600">
+        Loading...
+      </div>
+    );
+  }
 
-  return (
-    <section className="mx-auto max-w-3xl px-4 py-12 sm:px-6">
-      <div className="rounded-2xl border border-emerald-100 bg-white p-6 shadow-sm sm:p-9">
-        {/* Profile Header */}
-        <div className="flex items-center gap-4">
-          <div className="flex h-20 w-20 items-center justify-center rounded-full bg-emerald-100 text-3xl font-extrabold text-emerald-800">
-            {user.name?.charAt(0).toUpperCase() || "U"}
-          </div>
-
-          <div>
-            <h1 className="text-2xl font-extrabold text-emerald-950">
-              My Profile
-            </h1>
-
-            <p className="mt-1 text-slate-500">
-              Your BazarDor account information
-            </p>
-          </div>
-        </div>
-
-        {/* User Details */}
-        <div className="mt-8 space-y-5">
-          <div className="rounded-xl bg-emerald-50 p-5">
-            <p className="text-sm text-slate-500">
-              Full Name
-            </p>
-
-            <p className="mt-1 text-lg font-bold text-slate-900">
-              {user.name}
-            </p>
-          </div>
-
-          <div className="rounded-xl bg-emerald-50 p-5">
-            <p className="text-sm text-slate-500">
-              Email Address
-            </p>
-
-            <p className="mt-1 break-all text-lg font-bold text-slate-900">
-              {user.email}
-            </p>
-          </div>
-
-          <div className="rounded-xl bg-emerald-50 p-5">
-            <p className="text-sm text-slate-500">
-              Account Status
-            </p>
-
-            <p className="mt-1 font-semibold text-emerald-800">
-              Active
-            </p>
-          </div>
-        </div>
+  if (!session?.user) {
+    return (
+      <div className="mx-auto max-w-xl px-4 py-16 text-center">
+        <h1 className="text-2xl font-bold">
+          Please sign in first
+        </h1>
 
         <Link
-          href="/"
-          className="mt-7 inline-flex rounded-xl bg-emerald-700 px-6 py-3 font-semibold text-white transition hover:bg-emerald-800"
+          href="/signin"
+          className="mt-5 inline-flex rounded-xl bg-emerald-700 px-6 py-3 font-semibold text-white"
         >
-          Back to Home
+          Sign In
+        </Link>
+      </div>
+    );
+  }
+
+  return (
+    <section className="mx-auto max-w-xl px-4 py-12 sm:px-6">
+      <div className="rounded-2xl border border-emerald-100 bg-white p-6 shadow-sm sm:p-9">
+        <h1 className="text-2xl font-extrabold text-emerald-950">
+          Update Information
+        </h1>
+
+        <p className="mt-2 text-slate-600">
+          Update your BazarDor profile name.
+        </p>
+
+        <form
+          onSubmit={handleUpdate}
+          className="mt-7 space-y-5"
+        >
+          <div>
+            <label
+              htmlFor="name"
+              className="mb-2 block text-sm font-bold text-slate-700"
+            >
+              Name
+            </label>
+
+            <input
+              id="name"
+              type="text"
+              value={name}
+              onChange={(event) =>
+                setName(event.target.value)
+              }
+              placeholder={
+                session.user.name || "Enter your name"
+              }
+              required
+              disabled={loading}
+              className="w-full rounded-xl border border-slate-300 px-4 py-3 text-slate-900 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100"
+            />
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full rounded-xl bg-emerald-700 px-6 py-3 font-bold text-white transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {loading
+              ? "Updating..."
+              : "Update Information"}
+          </button>
+        </form>
+
+        <Link
+          href="/my-profile"
+          className="mt-5 inline-block text-sm font-semibold text-emerald-800 hover:underline"
+        >
+          ← Back to Profile
         </Link>
       </div>
     </section>

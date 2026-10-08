@@ -72,7 +72,7 @@ export default function CategorySortProducts({
 
   return (
     <div>
-      {/* Toolbar */}
+
       <div className="mb-6 flex flex-col gap-4 rounded-xl border border-emerald-100 bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm font-semibold text-slate-600">
           মোট পণ্য:{" "}
@@ -115,7 +115,7 @@ export default function CategorySortProducts({
         </div>
       </div>
 
-      {/* Product Grid */}
+
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {sortedProducts.map((product) => (
           <ProductCard

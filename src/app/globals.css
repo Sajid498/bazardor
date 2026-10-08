@@ -18,7 +18,7 @@ body {
     system-ui, sans-serif;
 }
 
-/* Price ticker animation */
+
 
 @keyframes ticker-scroll {
   from {
@@ -38,7 +38,7 @@ body {
   animation-play-state: paused;
 }
 
-/* Accessibility */
+
 
 @media (prefers-reduced-motion: reduce) {
   html {

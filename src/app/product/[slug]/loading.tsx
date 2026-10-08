@@ -6,10 +6,10 @@ export default function Loading() {
       role="status"
       aria-label="পণ্যের তথ্য লোড হচ্ছে"
     >
-      {/* Breadcrumb */}
+  
       <div className="mb-7 h-5 w-52 rounded bg-slate-200" />
 
-      {/* Product Summary */}
+ 
       <div className="rounded-2xl border border-slate-100 bg-white p-6 sm:p-9">
         <div className="flex flex-col gap-6 sm:flex-row">
           <div className="h-28 w-28 rounded-2xl bg-slate-200" />
@@ -26,7 +26,7 @@ export default function Loading() {
         </div>
       </div>
 
-      {/* Price Summary */}
+
       <div className="mt-10 h-8 w-56 rounded bg-slate-200" />
 
       <div className="mt-5 grid gap-4 sm:grid-cols-3">
@@ -42,7 +42,7 @@ export default function Loading() {
         ))}
       </div>
 
-      {/* Market Table */}
+ 
       <div className="mt-10 h-8 w-64 rounded bg-slate-200" />
 
       <div className="mt-5 space-y-3 rounded-2xl bg-white p-6">

@@ -1,5 +1,6 @@
 
 import type { Metadata } from "next";
+import { Suspense } from "react";
 
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -26,7 +27,9 @@ export default function RootLayout({
           <ToastProvider />
 
           {/* Global Navbar */}
-          <Header />
+          <Suspense fallback={null}>
+            <Header />
+          </Suspense>
 
           {/* Route Content */}
           <main className="flex-1">

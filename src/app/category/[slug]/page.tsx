@@ -152,7 +152,7 @@ export default async function CategoryPage({
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
-      {/* Breadcrumb */}
+    
       <nav
         aria-label="Breadcrumb"
         className="mb-6 text-sm text-slate-500"
@@ -171,7 +171,7 @@ export default async function CategoryPage({
         </span>
       </nav>
 
-      {/* Category Header */}
+   
       <div className="mb-8 rounded-2xl border border-emerald-100 bg-[#fafcfa] p-6 sm:p-8">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
           <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl bg-emerald-100 text-5xl">
@@ -190,7 +190,7 @@ export default async function CategoryPage({
         </div>
       </div>
 
-      {/* Product List */}
+
       <Suspense fallback={<Loading />}>
         <CategoryContent slug={slug} />
       </Suspense>

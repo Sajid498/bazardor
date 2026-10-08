@@ -6,7 +6,7 @@ export default function Footer() {
     <footer className="mt-16 border-t border-emerald-100 bg-[#fafcfa]">
       <div className="mx-auto flex max-w-6xl flex-col justify-between gap-4 px-4 py-8 sm:px-6 md:flex-row md:items-center">
 
-        {/* Website Information */}
+     
         <div>
           <Link
             href="/"
@@ -20,7 +20,7 @@ export default function Footer() {
           </p>
         </div>
 
-        {/* Footer Information */}
+    
         <p className="max-w-sm text-sm leading-6 text-slate-500 md:text-right">
           বাজার পরিস্থিতি ও স্থানভেদে পণ্যের
           দাম পরিবর্তিত হতে পারে।
