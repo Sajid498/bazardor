@@ -1,30 +1,19 @@
 
-import Link from "next/link";
-
 export default function Footer() {
   return (
-    <footer className="mt-16 border-t border-emerald-100 bg-[#fafcfa]">
-      <div className="mx-auto flex max-w-6xl flex-col justify-between gap-4 px-4 py-8 sm:px-6 md:flex-row md:items-center">
+    <footer className="mt-12 border-t border-emerald-100 bg-[#fafcfa]">
+      <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-6 text-center sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:gap-6 lg:text-left">
 
-     
-        <div>
-          <Link
-            href="/"
-            className="text-lg font-extrabold text-emerald-900"
-          >
-            🛒 বাজার দর
-          </Link>
-
-          <p className="mt-1 text-sm text-slate-600">
-            প্রয়োজনীয় পণ্যের দাম এক নজরে।
-          </p>
-        </div>
-
-    
-        <p className="max-w-sm text-sm leading-6 text-slate-500 md:text-right">
-          বাজার পরিস্থিতি ও স্থানভেদে পণ্যের
-          দাম পরিবর্তিত হতে পারে।
+        {/* Left: Assignment Required Text */}
+        <p className="text-sm font-semibold text-emerald-900 lg:whitespace-nowrap">
+          বাজার দর — প্রয়োজনীয় পণ্যের দাম এক নজরে।
         </p>
+
+        {/* Right: Assignment Required Disclaimer */}
+        <p className="text-sm leading-6 text-slate-500 lg:text-right">
+          সকল দাম সম্ভাব্য; বাজার অবস্থার ওপর নির্ভর করে পরিবর্তিত হয়।
+        </p>
+
       </div>
     </footer>
   );
