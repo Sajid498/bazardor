@@ -2,8 +2,7 @@
 import Link from "next/link";
 
 import {
-  Product,
-  formatBanglaNumber,
+  type Product,
   formatBanglaPrice,
   formatUnit,
 } from "@/lib/products";
@@ -20,74 +19,72 @@ export default function ProductCard({
   const isUp = change !== null && change > 0;
   const isDown = change !== null && change < 0;
 
-  let badgeColor =
-    "bg-slate-100 text-slate-600";
+  let badgeColor = "bg-slate-100 text-slate-600";
 
   if (isUp) {
-    badgeColor =
-      "bg-emerald-100 text-emerald-700";
+    badgeColor = "bg-emerald-100 text-emerald-700";
   }
 
   if (isDown) {
-    badgeColor =
-      "bg-red-100 text-red-700";
+    badgeColor = "bg-red-100 text-red-700";
   }
 
-  const changeText =
+  const formattedChange =
     change === null
+      ? null
+      : new Intl.NumberFormat("bn-BD", {
+          minimumFractionDigits: 1,
+          maximumFractionDigits: 1,
+        }).format(Math.abs(change));
+
+  const changeText =
+    formattedChange === null
       ? "তথ্য নেই"
       : `${
           isUp ? "▲" : isDown ? "▼" : "—"
-        } ${formatBanglaNumber(
-          Math.abs(change),
-          1
-        )}%`;
+        } ${formattedChange}%`;
 
   return (
     <Link
       href={`/product/${encodeURIComponent(product.id)}`}
-      className="group flex h-full flex-col overflow-hidden rounded-2xl border border-emerald-100 bg-white p-5 shadow-sm transition duration-300 hover:-translate-y-1 hover:border-emerald-300 hover:shadow-lg"
+      className="group flex h-full flex-col justify-between rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition duration-200 hover:border-emerald-300 hover:shadow-md sm:p-5"
     >
-     
-      <div className="mb-4 flex h-20 items-center justify-center rounded-xl bg-[#f2f8f2] text-5xl">
-        <span role="img" aria-label={product.name}>
-          {product.emoji}
-        </span>
+      {/* Product Name and Icon */}
+      <div className="flex items-start gap-3">
+        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-emerald-50 text-2xl">
+          <span role="img" aria-label={product.name}>
+            {product.emoji}
+          </span>
+        </div>
+
+        <div className="min-w-0 flex-1">
+          <h3 className="text-base font-bold leading-6 text-slate-800 transition group-hover:text-emerald-700">
+            {product.name}
+          </h3>
+
+          <p className="mt-1 text-xs text-slate-500">
+            {formatUnit(product.unit)}
+          </p>
+        </div>
       </div>
 
-    
-      <div className="flex-1">
-        <h3 className="text-lg font-extrabold text-slate-800 group-hover:text-emerald-800">
-          {product.name}
-        </h3>
+      {/* Current Price and Change */}
+      <div className="mt-5 flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <p className="text-xs font-medium text-slate-500">
+            আজকের দাম
+          </p>
 
-        <p className="mt-1 text-sm text-slate-500">
-          {formatUnit(product.unit)}
-        </p>
-      </div>
-
-      <div className="my-4 border-t border-slate-100" />
-
-
-      <p className="text-xs font-semibold text-slate-500">
-        আজকের দাম
-      </p>
-
-      <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
-        <span className="text-xl font-extrabold text-red-600">
-          {formatBanglaPrice(product.price)}
-        </span>
+          <p className="mt-1 text-xl font-extrabold text-slate-900">
+            {formatBanglaPrice(product.price)}
+          </p>
+        </div>
 
         <span
-          className={`rounded-full px-3 py-1 text-xs font-bold ${badgeColor}`}
+          className={`inline-flex shrink-0 items-center rounded-full px-3 py-1 text-xs font-bold ${badgeColor}`}
         >
           {changeText}
         </span>
-      </div>
-
-   
-      <div className="mt-4 text-sm font-bold text-emerald-700">
-        বিস্তারিত দেখুন →
       </div>
     </Link>
   );
