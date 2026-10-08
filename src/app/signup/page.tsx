@@ -19,27 +19,51 @@ export default function SignUpPage() {
   const [confirmPassword, setConfirmPassword] =
     useState("");
   const [loading, setLoading] = useState(false);
-  const [signinHref, setSigninHref] =
-    useState("/signin");
+  const [signinHref, setSigninHref] = useState("/signin");
 
   useEffect(() => {
     setSigninHref(getAuthPageHref("/signin"));
   }, []);
 
   async function handleSubmit(
-    e: React.FormEvent<HTMLFormElement>
+    event: React.FormEvent<HTMLFormElement>
   ) {
-    e.preventDefault();
+    event.preventDefault();
+
+    const trimmedName = name.trim();
+    const trimmedEmail = email.trim();
+
+    if (
+      !trimmedName ||
+      !trimmedEmail ||
+      !password ||
+      !confirmPassword
+    ) {
+      toast.error("সব তথ্য পূরণ করুন।");
+      return;
+    }
+
+    if (trimmedName.length < 2) {
+      toast.error("নাম কমপক্ষে ২ অক্ষরের হতে হবে।");
+      return;
+    }
+
+    if (
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)
+    ) {
+      toast.error("সঠিক ইমেইল অ্যাড্রেস লিখুন।");
+      return;
+    }
 
     if (password.length < 8) {
       toast.error(
-        "পাসওয়ার্ড কমপক্ষে ৮ অক্ষরের হতে হবে"
+        "পাসওয়ার্ড কমপক্ষে ৮ অক্ষরের হতে হবে।"
       );
       return;
     }
 
     if (password !== confirmPassword) {
-      toast.error("পাসওয়ার্ড মিলছে না");
+      toast.error("পাসওয়ার্ড মিলছে না।");
       return;
     }
 
@@ -47,25 +71,31 @@ export default function SignUpPage() {
 
     try {
       const { error } = await authClient.signUp.email({
-        name: name.trim(),
-        email: email.trim(),
+        name: trimmedName,
+        email: trimmedEmail,
         password,
       });
 
       if (error) {
         toast.error(
-          error.message || "Sign Up failed"
+          error.message ||
+            "Account তৈরি করা যায়নি।"
         );
         return;
       }
 
-      toast.success("Account created successfully!");
+      toast.success(
+        "Account তৈরি হয়েছে! এখন সাইন ইন করুন।"
+      );
 
-      // Preserve the original product/profile destination.
+      // Preserve the original callback destination.
       router.push(getAuthPageHref("/signin"));
     } catch (error) {
       console.error("Sign Up Error:", error);
-      toast.error("Something went wrong");
+
+      toast.error(
+        "কিছু সমস্যা হয়েছে। আবার চেষ্টা করুন।"
+      );
     } finally {
       setLoading(false);
     }
@@ -85,6 +115,7 @@ export default function SignUpPage() {
 
         <form
           onSubmit={handleSubmit}
+          noValidate
           className="space-y-5"
         >
           <div>
@@ -99,8 +130,11 @@ export default function SignUpPage() {
               id="name"
               type="text"
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              onChange={(event) =>
+                setName(event.target.value)
+              }
               placeholder="Enter your name"
+              autoComplete="name"
               required
               minLength={2}
               className="w-full rounded-lg border border-slate-300 p-3"
@@ -119,8 +153,11 @@ export default function SignUpPage() {
               id="email"
               type="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(event) =>
+                setEmail(event.target.value)
+              }
               placeholder="example@gmail.com"
+              autoComplete="email"
               required
               className="w-full rounded-lg border border-slate-300 p-3"
             />
@@ -138,8 +175,11 @@ export default function SignUpPage() {
               id="password"
               type="password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(event) =>
+                setPassword(event.target.value)
+              }
               placeholder="Minimum 8 characters"
+              autoComplete="new-password"
               minLength={8}
               required
               className="w-full rounded-lg border border-slate-300 p-3"
@@ -158,10 +198,11 @@ export default function SignUpPage() {
               id="confirm"
               type="password"
               value={confirmPassword}
-              onChange={(e) =>
-                setConfirmPassword(e.target.value)
+              onChange={(event) =>
+                setConfirmPassword(event.target.value)
               }
               placeholder="Confirm your password"
+              autoComplete="new-password"
               required
               className="w-full rounded-lg border border-slate-300 p-3"
             />
@@ -170,7 +211,7 @@ export default function SignUpPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-lg bg-emerald-700 p-3 font-bold text-white transition hover:bg-emerald-800 disabled:opacity-50"
+            className="w-full cursor-pointer rounded-lg bg-emerald-700 p-3 font-bold text-white transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {loading
               ? "Creating Account..."
@@ -184,7 +225,7 @@ export default function SignUpPage() {
           Already have an account?{" "}
           <Link
             href={signinHref}
-            className="font-bold text-emerald-700"
+            className="font-bold text-emerald-700 hover:underline"
           >
             Sign In
           </Link>

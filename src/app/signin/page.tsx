@@ -19,8 +19,7 @@ export default function SignInPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [signupHref, setSignupHref] =
-    useState("/signup");
+  const [signupHref, setSignupHref] = useState("/signup");
 
   useEffect(() => {
     setSignupHref(getAuthPageHref("/signup"));
@@ -31,7 +30,7 @@ export default function SignInPage() {
 
     if (params.get("reason") === "protected") {
       toast(
-        "পণ্যের বিস্তারিত দেখতে প্রথমে সাইন ইন করুন।",
+        "এই পেজটি দেখতে প্রথমে সাইন ইন করুন।",
         {
           id: "protected-route-notice",
           icon: "🔐",
@@ -45,8 +44,17 @@ export default function SignInPage() {
   ) {
     event.preventDefault();
 
-    if (!email.trim() || !password) {
+    const trimmedEmail = email.trim();
+
+    if (!trimmedEmail || !password) {
       toast.error("ইমেইল এবং পাসওয়ার্ড লিখুন।");
+      return;
+    }
+
+    if (
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)
+    ) {
+      toast.error("সঠিক ইমেইল অ্যাড্রেস লিখুন।");
       return;
     }
 
@@ -54,7 +62,7 @@ export default function SignInPage() {
 
     try {
       const { error } = await authClient.signIn.email({
-        email: email.trim(),
+        email: trimmedEmail,
         password,
       });
 
@@ -101,6 +109,7 @@ export default function SignInPage() {
 
         <form
           onSubmit={handleSubmit}
+          noValidate
           className="mt-8 space-y-5"
         >
           <div>
