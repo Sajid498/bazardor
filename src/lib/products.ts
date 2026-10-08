@@ -9,10 +9,27 @@ export type Product = {
   changePercent: number | null;
 };
 
+// Assignment's official API URLs.
+// Alternative first because primary returned 429.
 const API_URLS = [
-  "https://api.api-store.workers.dev/api/bazardor",
   "https://api.abcz.workers.dev/api/bazardor",
+  "https://api.api-store.workers.dev/api/bazardor",
 ];
+
+const CACHE_DURATION_MS = 10 * 60 * 1000;
+const STALE_IF_ERROR_MS = 60 * 60 * 1000;
+const RATE_LIMIT_WAIT_MS = 3 * 60 * 1000;
+const FAILURE_WAIT_MS = 60 * 1000;
+
+let cached: {
+  products: Product[];
+  savedAt: number;
+} | null = null;
+
+let inFlight: Promise<Product[]> | null = null;
+let failureUntil = 0;
+
+const rateLimitedUntil = new Map<string, number>();
 
 type JsonObject = Record<string, unknown>;
 
@@ -28,41 +45,33 @@ function getPath(
   object: JsonObject,
   path: string
 ): unknown {
-  let current: unknown = object;
+  let value: unknown = object;
 
   for (const key of path.split(".")) {
-    if (!isObject(current)) return undefined;
-    current = current[key];
+    if (!isObject(value)) return undefined;
+    value = value[key];
   }
 
-  return current;
+  return value;
 }
 
-function firstValue(
+function firstText(
   object: JsonObject,
   paths: string[]
-): unknown {
+): string {
   for (const path of paths) {
     const value = getPath(object, path);
 
-    if (
-      value !== undefined &&
-      value !== null &&
-      value !== ""
-    ) {
-      return value;
+    if (typeof value === "string" && value.trim()) {
+      return value.trim();
     }
-  }
 
-  return undefined;
-}
-
-function textValue(value: unknown): string {
-  if (
-    typeof value === "string" ||
-    typeof value === "number"
-  ) {
-    return String(value);
+    if (
+      typeof value === "number" &&
+      Number.isFinite(value)
+    ) {
+      return String(value);
+    }
   }
 
   return "";
@@ -77,25 +86,21 @@ export function parseNumber(
     return Number.isFinite(value) ? value : null;
   }
 
-  if (typeof value !== "string") {
-    return null;
-  }
+  if (typeof value !== "string") return null;
 
-  const converted = value
-    .replace(/[০-৯]/g, (digit) =>
-      String(bengaliDigits.indexOf(digit))
+  const normalized = value
+    .replace(
+      /[০-৯]/g,
+      (digit) => String(bengaliDigits.indexOf(digit))
     )
     .replace(/,/g, "")
     .replace(/−/g, "-")
     .replace(/[^0-9.+-]/g, "");
 
-  const result = Number.parseFloat(converted);
+  const result = Number.parseFloat(normalized);
 
-  if (!Number.isFinite(result)) {
-    return null;
-  }
+  if (!Number.isFinite(result)) return null;
 
-  // Negative trend arrows should be preserved.
   if (value.includes("▼") || value.includes("↓")) {
     return -Math.abs(result);
   }
@@ -107,14 +112,25 @@ export function parseNumber(
   return result;
 }
 
-function findProducts(data: unknown): unknown[] {
-  if (Array.isArray(data)) {
-    return data;
+function firstNumber(
+  object: JsonObject,
+  paths: string[]
+): number | null {
+  for (const path of paths) {
+    const number = parseNumber(
+      getPath(object, path)
+    );
+
+    if (number !== null) return number;
   }
 
-  if (!isObject(data)) {
-    return [];
-  }
+  return null;
+}
+
+function findProducts(response: unknown): unknown[] {
+  if (Array.isArray(response)) return response;
+
+  if (!isObject(response)) return [];
 
   for (const key of [
     "products",
@@ -122,18 +138,14 @@ function findProducts(data: unknown): unknown[] {
     "items",
     "results",
   ]) {
-    const nested = data[key];
+    const nested = response[key];
 
-    if (Array.isArray(nested)) {
-      return nested;
-    }
+    if (Array.isArray(nested)) return nested;
 
     if (isObject(nested)) {
-      const result = findProducts(nested);
+      const found = findProducts(nested);
 
-      if (result.length > 0) {
-        return result;
-      }
+      if (found.length) return found;
     }
   }
 
@@ -146,106 +158,96 @@ function normalizeProduct(
 ): Product | null {
   if (!isObject(raw)) return null;
 
-  const name = textValue(
-    firstValue(raw, [
-      "name_bn",
-      "nameBn",
-      "name",
-      "product_name",
-      "productName",
-      "title",
-      "name.bn",
-      "name.bangla",
-    ])
-  );
+  const name = firstText(raw, [
+    "name_bn",
+    "nameBn",
+    "name.bn",
+    "name.bangla",
+    "name",
+    "product_name",
+    "productName",
+    "title",
+  ]);
 
   if (!name) return null;
 
-  const id = textValue(
-    firstValue(raw, [
+  const id =
+    firstText(raw, [
       "id",
       "_id",
       "productId",
       "product_id",
       "slug",
-    ])
-  ) || String(index + 1);
+    ]) || String(index + 1);
 
-  const category = textValue(
-    firstValue(raw, [
+  const category =
+    firstText(raw, [
       "category.slug",
       "category.id",
+      "category.name_bn",
+      "category.name",
       "category",
       "category_slug",
       "categorySlug",
-    ])
-  ) || "other";
+    ]) || "other";
 
-  const unit = textValue(
-    firstValue(raw, [
+  const unit =
+    firstText(raw, [
       "unit_bn",
       "unitBn",
       "unit",
       "measurementUnit",
       "measurement_unit",
-    ])
-  ) || "কেজি";
+    ]) || "কেজি";
 
-  const emoji = textValue(
-    firstValue(raw, [
+  const emoji =
+    firstText(raw, [
       "emoji",
       "icon",
       "thumbnailEmoji",
       "thumbnail_emoji",
-    ])
-  ) || "🛒";
+    ]) || "🛒";
 
-  const price = parseNumber(
-    firstValue(raw, [
-      "today_price",
-      "todayPrice",
-      "current_price",
-      "currentPrice",
-      "avg_price",
-      "avgPrice",
-      "average_price",
-      "averagePrice",
-      "price",
-      "price.today",
-      "price.current",
-      "prices.today",
-      "summary.average",
-    ])
-  );
+  const price = firstNumber(raw, [
+    "today_price",
+    "todayPrice",
+    "current_price",
+    "currentPrice",
+    "avg_price",
+    "avgPrice",
+    "average_price",
+    "averagePrice",
+    "price.today",
+    "price.current",
+    "price",
+    "prices.today",
+    "summary.average",
+  ]);
 
-  const previousPrice = parseNumber(
-    firstValue(raw, [
-      "yesterday_price",
-      "yesterdayPrice",
-      "previous_price",
-      "previousPrice",
-      "old_price",
-      "oldPrice",
-    ])
-  );
+  const previousPrice = firstNumber(raw, [
+    "yesterday_price",
+    "yesterdayPrice",
+    "previous_price",
+    "previousPrice",
+    "old_price",
+    "oldPrice",
+  ]);
 
-  let changePercent = parseNumber(
-    firstValue(raw, [
-      "change_percent",
-      "changePercent",
-      "change_percentage",
-      "changePercentage",
-      "change_pct",
-      "changePct",
-      "percentageChange",
-      "percentChange",
-      "price_change_percent",
-      "priceChangePercent",
-      "trend.percent",
-      "trend.percentage",
-      "change",
-    ])
-  );
+  let changePercent = firstNumber(raw, [
+    "change_percent",
+    "changePercent",
+    "change_percentage",
+    "changePercentage",
+    "change_pct",
+    "changePct",
+    "percentageChange",
+    "percentChange",
+    "price_change_percent",
+    "priceChangePercent",
+    "trend.percent",
+    "trend.percentage",
+    "change",
+  ]);
 
   if (
     changePercent === null &&
@@ -271,70 +273,158 @@ function normalizeProduct(
 export function normalizeProducts(
   response: unknown
 ): Product[] {
-  const rawProducts = findProducts(response);
-
-  return rawProducts
-    .map((item, index) =>
-      normalizeProduct(item, index)
-    )
+  return findProducts(response)
+    .map(normalizeProduct)
     .filter(
       (product): product is Product =>
         product !== null
     );
 }
 
-export async function getProducts(): Promise<Product[]> {
-  let lastError: unknown;
+// Fetch from external BazarDor APIs.
+async function loadFromExternalApi(): Promise<Product[]> {
+  let lastError = "Product API unavailable";
 
   for (const baseUrl of API_URLS) {
+    // Skip an API that recently returned 429.
+    if (
+      (rateLimitedUntil.get(baseUrl) ?? 0) >
+      Date.now()
+    ) {
+      continue;
+    }
+
     try {
+      const fetchOptions = {
+        next: { revalidate: 600 },
+        signal: AbortSignal.timeout(10000),
+      };
+
       const response = await fetch(
         `${baseUrl}/products`,
-        {
-          next: {
-            revalidate: 300,
-          },
-        }
+        fetchOptions
       );
 
+      if (response.status === 429) {
+        rateLimitedUntil.set(
+          baseUrl,
+          Date.now() + RATE_LIMIT_WAIT_MS
+        );
+
+        console.warn(
+          `Product API rate limited (429): ${baseUrl}. Trying fallback.`
+        );
+
+        lastError = "Product API rate limit reached";
+        continue;
+      }
+
       if (!response.ok) {
-        throw new Error(
-          `API returned ${response.status}`
-        );
+        lastError = `Product API returned ${response.status}`;
+
+        console.warn(`${lastError}: ${baseUrl}`);
+        continue;
       }
 
-      const data: unknown = await response.json();
-      const products = normalizeProducts(data);
+      const json: unknown = await response.json();
+      const products = normalizeProducts(json);
 
-      if (products.length === 0) {
-        // An empty array is valid API data.
-        if (
-          Array.isArray(data) &&
-          data.length === 0
-        ) {
-          return [];
-        }
-
-        throw new Error(
-          "Product response format is not recognized."
-        );
+      if (
+        products.length > 0 ||
+        (Array.isArray(json) && json.length === 0)
+      ) {
+        return products;
       }
 
-      return products;
+      lastError =
+        "Product API data format is not recognized";
+
+      console.warn(`${lastError}: ${baseUrl}`);
     } catch (error) {
-      lastError = error;
-      console.error(
-        `BazarDor API request failed: ${baseUrl}`,
-        error
+      lastError =
+        error instanceof Error
+          ? error.message
+          : "Network error";
+
+      console.warn(
+        `Product API unavailable (${baseUrl}): ${lastError}`
       );
     }
   }
 
-  throw lastError instanceof Error
-    ? lastError
-    : new Error("Unable to load products.");
+  throw new Error(lastError);
 }
 
+// Cached product service.
+export async function getProducts(): Promise<Product[]> {
+  const now = Date.now();
+
+  // 1. Return recently cached products.
+  if (
+    cached &&
+    now - cached.savedAt < CACHE_DURATION_MS
+  ) {
+    return cached.products;
+  }
+
+  // 2. Reuse an existing pending request.
+  if (inFlight) {
+    return inFlight;
+  }
+
+  // 3. Avoid repeated requests during outages.
+  if (now < failureUntil) {
+    if (
+      cached &&
+      now - cached.savedAt < STALE_IF_ERROR_MS
+    ) {
+      return cached.products;
+    }
+
+    throw new Error(
+      "Product API temporarily unavailable. Please try later."
+    );
+  }
+
+  // 4. Fetch and save the successful response.
+  inFlight = loadFromExternalApi()
+    .then((products) => {
+      cached = {
+        products,
+        savedAt: Date.now(),
+      };
+
+      failureUntil = 0;
+
+      return products;
+    })
+    .catch((error: unknown) => {
+      failureUntil = Date.now() + FAILURE_WAIT_MS;
+
+      // Show previously fetched real data
+      // during a temporary API outage.
+      if (
+        cached &&
+        Date.now() - cached.savedAt <
+          STALE_IF_ERROR_MS
+      ) {
+        console.warn(
+          "Using previously fetched product data until API recovers."
+        );
+
+        return cached.products;
+      }
+
+      throw error;
+    })
+    .finally(() => {
+      inFlight = null;
+    });
+
+  return inFlight;
+}
+
+// Bengali number formatter.
 export function formatBanglaNumber(
   value: number,
   maximumFractionDigits = 0
@@ -344,6 +434,7 @@ export function formatBanglaNumber(
   }).format(value);
 }
 
+// Bengali price formatter.
 export function formatBanglaPrice(
   price: number | null
 ): string {
@@ -354,6 +445,7 @@ export function formatBanglaPrice(
   return `${formatBanglaNumber(price, 2)} টাকা`;
 }
 
+// Product unit formatter.
 export function formatUnit(unit: string): string {
   if (unit.startsWith("প্রতি")) {
     return unit;
@@ -370,8 +462,5 @@ export function formatUnit(unit: string): string {
     piece: "পিস",
   };
 
-  const translated =
-    unitMap[unit.toLowerCase()] || unit;
-
-  return `প্রতি ${translated}`;
+  return `প্রতি ${unitMap[unit.toLowerCase()] || unit}`;
 }
