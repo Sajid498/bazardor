@@ -25,10 +25,12 @@ function ProductSection({
   sortable = false,
 }: SectionProps) {
   return (
-    <section
-      id={id}
-      className="scroll-mt-8 py-8"
-    >
+    
+<section
+  id={id}
+  className="scroll-mt-44 py-8"
+>
+
       <div className="mb-6">
         <h2 className="text-2xl font-extrabold text-emerald-950 sm:text-3xl">
           {title}
