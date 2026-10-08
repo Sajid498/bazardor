@@ -1,13 +1,53 @@
 
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 
 import { authClient } from "@/lib/auth-client";
 import SocialLoginButtons from "@/components/SocialLoginButtons";
+
+function getSafeCallbackUrl(): string {
+  const params = new URLSearchParams(
+    window.location.search
+  );
+
+  const callbackUrl = params.get("callbackUrl");
+
+  if (!callbackUrl) {
+    return "/";
+  }
+
+  // Only allow internal paths.
+  if (
+    !callbackUrl.startsWith("/") ||
+    callbackUrl.startsWith("//") ||
+    callbackUrl.startsWith("/\\")
+  ) {
+    return "/";
+  }
+
+  try {
+    const target = new URL(
+      callbackUrl,
+      window.location.origin
+    );
+
+    if (target.origin !== window.location.origin) {
+      return "/";
+    }
+
+    return (
+      target.pathname +
+      target.search +
+      target.hash
+    );
+  } catch {
+    return "/";
+  }
+}
 
 export default function SignInPage() {
   const router = useRouter();
@@ -16,13 +56,26 @@ export default function SignInPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
+  useEffect(() => {
+    const params = new URLSearchParams(
+      window.location.search
+    );
+
+    if (params.get("reason") === "protected") {
+      toast("পণ্যের বিস্তারিত দেখতে প্রথমে সাইন ইন করুন।", {
+        id: "protected-route-notice",
+        icon: "🔐",
+      });
+    }
+  }, []);
+
   async function handleSubmit(
-    e: React.FormEvent<HTMLFormElement>
+    event: React.FormEvent<HTMLFormElement>
   ) {
-    e.preventDefault();
+    event.preventDefault();
 
     if (!email.trim() || !password) {
-      toast.error("Please enter email and password");
+      toast.error("ইমেইল এবং পাসওয়ার্ড লিখুন।");
       return;
     }
 
@@ -31,23 +84,29 @@ export default function SignInPage() {
     try {
       const { error } = await authClient.signIn.email({
         email: email.trim(),
-        password: password,
+        password,
       });
 
       if (error) {
         toast.error(
-          error.message || "Invalid email or password"
+          error.message ||
+            "ইমেইল অথবা পাসওয়ার্ড ভুল।"
         );
         return;
       }
 
-      toast.success("Login successful!");
+      toast.success("সফলভাবে সাইন ইন হয়েছে!");
 
-      router.replace("/");
+      const destination = getSafeCallbackUrl();
+
+      router.replace(destination);
       router.refresh();
     } catch (error) {
       console.error("Sign In Error:", error);
-      toast.error("Something went wrong. Try again.");
+
+      toast.error(
+        "লগইন করতে সমস্যা হয়েছে। আবার চেষ্টা করুন।"
+      );
     } finally {
       setLoading(false);
     }
@@ -56,8 +115,7 @@ export default function SignInPage() {
   return (
     <section className="flex min-h-[75vh] items-center justify-center px-4 py-12">
       <div className="w-full max-w-md rounded-2xl border border-emerald-100 bg-white p-6 shadow-lg sm:p-9">
-
-        {/* Heading */}
+        {/* Header */}
         <div className="text-center">
           <div className="mb-4 text-5xl">🛒</div>
 
@@ -70,12 +128,11 @@ export default function SignInPage() {
           </p>
         </div>
 
-        {/* Sign In Form */}
+        {/* Email Login */}
         <form
           onSubmit={handleSubmit}
           className="mt-8 space-y-5"
         >
-          {/* Email */}
           <div>
             <label
               htmlFor="signin-email"
@@ -88,7 +145,9 @@ export default function SignInPage() {
               id="signin-email"
               type="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(event) =>
+                setEmail(event.target.value)
+              }
               placeholder="example@gmail.com"
               autoComplete="email"
               required
@@ -96,7 +155,6 @@ export default function SignInPage() {
             />
           </div>
 
-          {/* Password */}
           <div>
             <label
               htmlFor="signin-password"
@@ -109,7 +167,9 @@ export default function SignInPage() {
               id="signin-password"
               type="password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(event) =>
+                setPassword(event.target.value)
+              }
               placeholder="Enter your password"
               autoComplete="current-password"
               required
@@ -117,7 +177,6 @@ export default function SignInPage() {
             />
           </div>
 
-          {/* Submit Button */}
           <button
             type="submit"
             disabled={loading}
@@ -130,7 +189,7 @@ export default function SignInPage() {
         {/* Social Login */}
         <SocialLoginButtons />
 
-        {/* Sign Up Link */}
+        {/* Signup Link */}
         <p className="mt-6 text-center text-sm text-slate-600">
           Don't have an account?{" "}
           <Link
