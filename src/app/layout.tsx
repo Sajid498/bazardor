@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import ToastProvider from "@/components/ToastProvider";
 
 import "./globals.css";
 
@@ -21,15 +22,18 @@ export default function RootLayout({
     <html lang="bn">
       <body className="antialiased">
         <div className="flex min-h-screen flex-col">
-          {/* Common Navbar */}
+          {/* Toast Notification */}
+          <ToastProvider />
+
+          {/* Global Navbar */}
           <Header />
 
-          {/* Page Content */}
+          {/* Route Content */}
           <main className="flex-1">
             {children}
           </main>
 
-          {/* Common Footer */}
+          {/* Global Footer */}
           <Footer />
         </div>
       </body>

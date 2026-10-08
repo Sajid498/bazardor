@@ -6,8 +6,10 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
+import AuthNav from "@/components/AuthNav";
+
 import {
-  Product,
+  type Product,
   formatBanglaNumber,
   formatBanglaPrice,
   formatUnit,
@@ -25,9 +27,8 @@ const categories = [
 ];
 
 function PriceTicker() {
-  const [products, setProducts] = useState<Product[]>(
-    []
-  );
+  const [products, setProducts] =
+    useState<Product[]>([]);
 
   const [loading, setLoading] = useState(true);
 
@@ -36,10 +37,9 @@ function PriceTicker() {
 
     async function loadTicker() {
       try {
-        const response = await fetch(
-          "/api/products",
-          { signal: controller.signal }
-        );
+        const response = await fetch("/api/products", {
+          signal: controller.signal,
+        });
 
         if (!response.ok) {
           throw new Error("Ticker API failed");
@@ -91,8 +91,7 @@ function PriceTicker() {
                   aria-hidden={copy === 1}
                 >
                   {products.map((product) => {
-                    const change =
-                      product.changePercent;
+                    const change = product.changePercent;
 
                     const changeText =
                       change === null
@@ -101,8 +100,8 @@ function PriceTicker() {
                             change > 0
                               ? "▲"
                               : change < 0
-                              ? "▼"
-                              : "—"
+                                ? "▼"
+                                : "—"
                           } ${formatBanglaNumber(
                             Math.abs(change),
                             1
@@ -120,9 +119,7 @@ function PriceTicker() {
                         </span>
 
                         <span>
-                          {formatBanglaPrice(
-                            product.price
-                          )}
+                          {formatBanglaPrice(product.price)}
                           /
                           {formatUnit(product.unit).replace(
                             /^প্রতি\s*/,
@@ -132,13 +129,11 @@ function PriceTicker() {
 
                         <span
                           className={`font-bold ${
-                            change !== null &&
-                            change > 0
+                            change !== null && change > 0
                               ? "text-emerald-700"
-                              : change !== null &&
-                                change < 0
-                              ? "text-red-600"
-                              : "text-slate-500"
+                              : change !== null && change < 0
+                                ? "text-red-600"
+                                : "text-slate-500"
                           }`}
                         >
                           {changeText}
@@ -159,9 +154,8 @@ function PriceTicker() {
 export default function Header() {
   const pathname = usePathname();
 
-  const [dateText, setDateText] = useState(
-    "আজকের বাজারদর"
-  );
+  const [dateText, setDateText] =
+    useState("আজকের বাজারদর");
 
   useEffect(() => {
     setDateText(
@@ -182,6 +176,7 @@ export default function Header() {
         <Link
           href="/"
           className="flex items-center gap-3"
+          aria-label="BazarDor Home"
         >
           <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-100">
             <Image
@@ -203,25 +198,11 @@ export default function Header() {
           </span>
         </Link>
 
-        {/* Auth Navigation */}
-        <div className="flex items-center gap-2 sm:gap-3">
-          <Link
-            href="/signin"
-            className="rounded-lg px-3 py-2 text-sm font-semibold text-emerald-900 transition hover:bg-emerald-50 sm:px-4"
-          >
-            সাইন ইন
-          </Link>
-
-          <Link
-            href="/signup"
-            className="rounded-lg bg-emerald-700 px-3 py-2 text-sm font-semibold text-white transition hover:bg-emerald-800 sm:px-5"
-          >
-            সাইন আপ
-          </Link>
-        </div>
+        {/* Authentication Navigation */}
+        <AuthNav />
       </div>
 
-      {/* Category Menu */}
+      {/* Category Navigation */}
       <nav
         aria-label="পণ্য ক্যাটাগরি"
         className="border-t border-emerald-100"
@@ -229,7 +210,6 @@ export default function Header() {
         <div className="mx-auto flex max-w-6xl gap-1 overflow-x-auto px-4 py-2 sm:gap-2 sm:px-6">
           {categories.map((category) => {
             const href = `/category/${category.slug}`;
-
             const active = pathname === href;
 
             return (
@@ -248,7 +228,6 @@ export default function Header() {
                 <span className="mr-1">
                   {category.emoji}
                 </span>
-
                 {category.label}
               </Link>
             );
@@ -256,6 +235,7 @@ export default function Header() {
         </div>
       </nav>
 
+      {/* Real API Price Ticker */}
       <PriceTicker />
     </header>
   );
