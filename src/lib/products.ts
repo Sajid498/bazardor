@@ -1,4 +1,4 @@
-
+import { connection } from "next/server";
 export type Product = {
   id: string;
   name: string;
@@ -357,6 +357,8 @@ async function loadFromExternalApi(): Promise<Product[]> {
 
 // Cached product service.
 export async function getProducts(): Promise<Product[]> {
+  await connection();
+
   const now = Date.now();
 
   // 1. Return recently cached products.
