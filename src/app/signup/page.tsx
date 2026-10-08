@@ -1,12 +1,13 @@
 
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 
 import { authClient } from "@/lib/auth-client";
+import { getAuthPageHref } from "@/lib/auth-redirect";
 import SocialLoginButtons from "@/components/SocialLoginButtons";
 
 export default function SignUpPage() {
@@ -18,6 +19,12 @@ export default function SignUpPage() {
   const [confirmPassword, setConfirmPassword] =
     useState("");
   const [loading, setLoading] = useState(false);
+  const [signinHref, setSigninHref] =
+    useState("/signin");
+
+  useEffect(() => {
+    setSigninHref(getAuthPageHref("/signin"));
+  }, []);
 
   async function handleSubmit(
     e: React.FormEvent<HTMLFormElement>
@@ -25,7 +32,9 @@ export default function SignUpPage() {
     e.preventDefault();
 
     if (password.length < 8) {
-      toast.error("পাসওয়ার্ড কমপক্ষে ৮ অক্ষরের হতে হবে");
+      toast.error(
+        "পাসওয়ার্ড কমপক্ষে ৮ অক্ষরের হতে হবে"
+      );
       return;
     }
 
@@ -52,8 +61,10 @@ export default function SignUpPage() {
 
       toast.success("Account created successfully!");
 
-      router.push("/signin");
-    } catch {
+      // Preserve the original product/profile destination.
+      router.push(getAuthPageHref("/signin"));
+    } catch (error) {
+      console.error("Sign Up Error:", error);
       toast.error("Something went wrong");
     } finally {
       setLoading(false);
@@ -72,12 +83,18 @@ export default function SignUpPage() {
           Join BazarDor Today
         </p>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
-
+        <form
+          onSubmit={handleSubmit}
+          className="space-y-5"
+        >
           <div>
-            <label htmlFor="name" className="mb-2 block font-semibold">
+            <label
+              htmlFor="name"
+              className="mb-2 block font-semibold"
+            >
               Full Name
             </label>
+
             <input
               id="name"
               type="text"
@@ -91,9 +108,13 @@ export default function SignUpPage() {
           </div>
 
           <div>
-            <label htmlFor="email" className="mb-2 block font-semibold">
+            <label
+              htmlFor="email"
+              className="mb-2 block font-semibold"
+            >
               Email
             </label>
+
             <input
               id="email"
               type="email"
@@ -106,9 +127,13 @@ export default function SignUpPage() {
           </div>
 
           <div>
-            <label htmlFor="password" className="mb-2 block font-semibold">
+            <label
+              htmlFor="password"
+              className="mb-2 block font-semibold"
+            >
               Password
             </label>
+
             <input
               id="password"
               type="password"
@@ -122,9 +147,13 @@ export default function SignUpPage() {
           </div>
 
           <div>
-            <label htmlFor="confirm" className="mb-2 block font-semibold">
+            <label
+              htmlFor="confirm"
+              className="mb-2 block font-semibold"
+            >
               Confirm Password
             </label>
+
             <input
               id="confirm"
               type="password"
@@ -143,7 +172,9 @@ export default function SignUpPage() {
             disabled={loading}
             className="w-full rounded-lg bg-emerald-700 p-3 font-bold text-white transition hover:bg-emerald-800 disabled:opacity-50"
           >
-            {loading ? "Creating Account..." : "Sign Up"}
+            {loading
+              ? "Creating Account..."
+              : "Sign Up"}
           </button>
         </form>
 
@@ -152,7 +183,7 @@ export default function SignUpPage() {
         <p className="mt-6 text-center text-sm">
           Already have an account?{" "}
           <Link
-            href="/signin"
+            href={signinHref}
             className="font-bold text-emerald-700"
           >
             Sign In

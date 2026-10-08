@@ -7,47 +7,11 @@ import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 
 import { authClient } from "@/lib/auth-client";
+import {
+  getSafeCallbackUrl,
+  getAuthPageHref,
+} from "@/lib/auth-redirect";
 import SocialLoginButtons from "@/components/SocialLoginButtons";
-
-function getSafeCallbackUrl(): string {
-  const params = new URLSearchParams(
-    window.location.search
-  );
-
-  const callbackUrl = params.get("callbackUrl");
-
-  if (!callbackUrl) {
-    return "/";
-  }
-
-  // Only allow internal paths.
-  if (
-    !callbackUrl.startsWith("/") ||
-    callbackUrl.startsWith("//") ||
-    callbackUrl.startsWith("/\\")
-  ) {
-    return "/";
-  }
-
-  try {
-    const target = new URL(
-      callbackUrl,
-      window.location.origin
-    );
-
-    if (target.origin !== window.location.origin) {
-      return "/";
-    }
-
-    return (
-      target.pathname +
-      target.search +
-      target.hash
-    );
-  } catch {
-    return "/";
-  }
-}
 
 export default function SignInPage() {
   const router = useRouter();
@@ -55,17 +19,24 @@ export default function SignInPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [signupHref, setSignupHref] =
+    useState("/signup");
 
   useEffect(() => {
+    setSignupHref(getAuthPageHref("/signup"));
+
     const params = new URLSearchParams(
       window.location.search
     );
 
     if (params.get("reason") === "protected") {
-      toast("পণ্যের বিস্তারিত দেখতে প্রথমে সাইন ইন করুন।", {
-        id: "protected-route-notice",
-        icon: "🔐",
-      });
+      toast(
+        "পণ্যের বিস্তারিত দেখতে প্রথমে সাইন ইন করুন।",
+        {
+          id: "protected-route-notice",
+          icon: "🔐",
+        }
+      );
     }
   }, []);
 
@@ -115,7 +86,7 @@ export default function SignInPage() {
   return (
     <section className="flex min-h-[75vh] items-center justify-center px-4 py-12">
       <div className="w-full max-w-md rounded-2xl border border-emerald-100 bg-white p-6 shadow-lg sm:p-9">
- 
+
         <div className="text-center">
           <div className="mb-4 text-5xl">🛒</div>
 
@@ -128,7 +99,6 @@ export default function SignInPage() {
           </p>
         </div>
 
-  
         <form
           onSubmit={handleSubmit}
           className="mt-8 space-y-5"
@@ -186,14 +156,12 @@ export default function SignInPage() {
           </button>
         </form>
 
-
         <SocialLoginButtons />
 
-    
         <p className="mt-6 text-center text-sm text-slate-600">
           Don't have an account?{" "}
           <Link
-            href="/signup"
+            href={signupHref}
             className="font-bold text-emerald-700 hover:underline"
           >
             Sign Up

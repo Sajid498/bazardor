@@ -5,37 +5,32 @@ import { useState } from "react";
 import toast from "react-hot-toast";
 
 import { authClient } from "@/lib/auth-client";
+import { getSafeCallbackUrl } from "@/lib/auth-redirect";
 
 type Provider = "google" | "github";
-function getCallbackURL(): string {
-  const params = new URLSearchParams(
-    window.location.search
-  );
 
-  const callbackURL = params.get("callbackUrl");
-
-  if (
-    callbackURL &&
-    callbackURL.startsWith("/") &&
-    !callbackURL.startsWith("//") &&
-    !callbackURL.startsWith("/\\")
-  ) {
-    return callbackURL;
-  }
-
-  return "/";
-}
 export default function SocialLoginButtons() {
-  const [loading, setLoading] = useState<Provider | null>(null);
+  const [loading, setLoading] =
+    useState<Provider | null>(null);
 
-  async function handleSocialLogin(provider: Provider) {
+  async function handleSocialLogin(
+    provider: Provider
+  ) {
     setLoading(provider);
 
     try {
-      const { error } = await authClient.signIn.social({
-        provider: provider,
-        callbackURL: "/?signedIn=1",
-      });
+      const destination = getSafeCallbackUrl();
+
+      const callbackURL =
+        destination === "/"
+          ? "/?signedIn=1"
+          : destination;
+
+      const { error } =
+        await authClient.signIn.social({
+          provider,
+          callbackURL,
+        });
 
       if (error) {
         toast.error(
@@ -44,7 +39,9 @@ export default function SocialLoginButtons() {
       }
     } catch (error) {
       console.error("Social login error:", error);
-      toast.error("Something went wrong. Try again.");
+      toast.error(
+        "Something went wrong. Try again."
+      );
     } finally {
       setLoading(null);
     }
@@ -52,18 +49,16 @@ export default function SocialLoginButtons() {
 
   return (
     <div className="mt-6 space-y-3">
-
       <div className="flex items-center gap-3">
-        <div className="h-px flex-1 bg-gray-200"></div>
+        <div className="h-px flex-1 bg-gray-200" />
 
         <span className="text-sm text-gray-500">
           Or continue with
         </span>
 
-        <div className="h-px flex-1 bg-gray-200"></div>
+        <div className="h-px flex-1 bg-gray-200" />
       </div>
 
-    
       <button
         type="button"
         onClick={() => handleSocialLogin("google")}
@@ -79,7 +74,6 @@ export default function SocialLoginButtons() {
           : "Continue with Google"}
       </button>
 
-      
       <button
         type="button"
         onClick={() => handleSocialLogin("github")}
