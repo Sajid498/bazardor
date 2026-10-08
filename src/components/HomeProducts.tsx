@@ -2,10 +2,11 @@
 import Link from "next/link";
 
 import ProductCard from "@/components/ProductCard";
+import CategorySortProducts from "@/components/CategorySortProducts";
 
 import {
   getProducts,
-  Product,
+  type Product,
 } from "@/lib/products";
 
 type SectionProps = {
@@ -13,6 +14,7 @@ type SectionProps = {
   subtitle: string;
   products: Product[];
   id?: string;
+  sortable?: boolean;
 };
 
 function ProductSection({
@@ -20,6 +22,7 @@ function ProductSection({
   subtitle,
   products,
   id,
+  sortable = false,
 }: SectionProps) {
   return (
     <section
@@ -36,7 +39,9 @@ function ProductSection({
         </p>
       </div>
 
-      {products.length === 0 ? (
+      {sortable ? (
+        <CategorySortProducts products={products} />
+      ) : products.length === 0 ? (
         <div className="rounded-xl border border-slate-200 bg-white p-6 text-center text-slate-500">
           এই বিভাগে বর্তমানে কোনো পণ্য নেই।
         </div>
@@ -133,6 +138,7 @@ export default async function HomeProducts() {
         title="সব পণ্য"
         subtitle="নিত্যপ্রয়োজনীয় সব পণ্যের সর্বশেষ বাজারদর"
         products={products}
+        sortable
       />
     </>
   );
